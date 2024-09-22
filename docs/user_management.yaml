@@ -2,10 +2,13 @@ openapi: 3.0.0
 info:
   title: User Management Service
   version: 1.0.0
+
 paths:
   /users:
     get:
       summary: List all users
+      security:
+        - oauth2: [read]
       responses:
         '200':
           description: A list of users
@@ -36,6 +39,8 @@ paths:
   /users/{userId}:
     get:
       summary: Get a user by ID
+      security:
+        - oauth2: [read]
       parameters:
         - name: userId
           in: path
@@ -60,6 +65,8 @@ paths:
           description: User not found
     put:
       summary: Update a user by ID
+      security:
+        - oauth2: [write]
       parameters:
         - name: userId
           in: path
@@ -85,6 +92,8 @@ paths:
           description: User not found
     delete:
       summary: Delete a user by ID
+      security:
+        - oauth2: [write]
       parameters:
         - name: userId
           in: path
@@ -97,7 +106,92 @@ paths:
         '404':
           description: User not found
 
+  /oauth/authorize:
+    get:
+      summary: Authorization endpoint
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirects to the redirect_uri with authorization code
+        '400':
+          description: Invalid request
+
+  /oauth/token:
+    post:
+      summary: Token endpoint
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum: [authorization_code, refresh_token]
+                code:
+                  type: string
+                redirect_uri:
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: integer
+                  refresh_token:
+                    type: string
+        '400':
+          description: Invalid request
+
 components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth/authorize
+          tokenUrl: /oauth/token
+          scopes:
+            read: Grants read access
+            write: Grants write access
+            update: Grants update access
+            delete: Grants delete access
+
   schemas:
     User:
       type: object
