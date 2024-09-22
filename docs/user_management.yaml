@@ -1,4 +1,3 @@
-
 openapi: 3.0.0
 info:
   title: User Management Service
@@ -31,6 +30,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+          
   /users/{userId}:
     get:
       summary: Get a user by ID
@@ -47,6 +49,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+              examples:
+                example1:
+                  value:
+                    id: "1"
+                    username: "johndoe"
+                    email: "john@example.com"
+                    role: "user"
+        '404':
+          description: User not found
     put:
       summary: Update a user by ID
       parameters:
@@ -68,6 +79,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+        '404':
+          description: User not found
     delete:
       summary: Delete a user by ID
       parameters:
@@ -79,6 +94,9 @@ paths:
       responses:
         '204':
           description: User deleted
+        '404':
+          description: User not found
+
 components:
   schemas:
     User:
@@ -86,9 +104,21 @@ components:
       properties:
         id:
           type: string
+          description: Unique identifier for the user
         username:
           type: string
+          description: Username chosen by the user
+          minLength: 3
+          maxLength: 30
         email:
           type: string
+          description: User's email address
+          format: email
         role:
           type: string
+          description: Role of the user (e.g., admin, user)
+      required:
+        - id
+        - username
+        - email
+        - role
